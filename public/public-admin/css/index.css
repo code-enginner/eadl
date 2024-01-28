@@ -1,0 +1,11 @@
+@import 'vendors/vendors.css';
+@import 'vendors/style-rtl.css';
+@import 'vendors/materialize.css';
+@import 'vendors/style.css';
+@import 'vendors/dashboard.css';
+@import 'vendors/animate.min.css';
+@import 'vendors/aos.css';
+@import 'vendors/select2/select2.min.css';
+@import 'vendors/select2/select2-materialize.css';
+@import 'vendors/dropify/css/dropify.min.css';
+@import 'vendors/jstree/themes/default/style.min.css';

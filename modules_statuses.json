@@ -1,0 +1,9 @@
+{
+    "Admin": true,
+    "Storefront": true,
+    "User": true,
+    "Dashboard": true,
+    "LoginController": true,
+    "Service": true,
+    "Transaction": true
+}

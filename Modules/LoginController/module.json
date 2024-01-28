@@ -1,0 +1,11 @@
+{
+    "name": "LoginController",
+    "alias": "logincontroller",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\LoginController\\Providers\\LoginControllerServiceProvider"
+    ],
+    "files": []
+}
