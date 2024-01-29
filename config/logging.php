@@ -133,39 +133,9 @@ return [
             'level'  => env('LOG_LEVEL', 'debug'),
         ],
 
-        'admin' => [
+        'inquiry' => [
             'driver' => 'single',
-            'path'   => storage_path('logs/admin.log'),
-            'level'  => env('LOG_LEVEL', 'debug'),
-        ],
-
-        'user' => [
-            'driver' => 'single',
-            'path'   => storage_path('logs/user.log'),
-            'level'  => env('LOG_LEVEL', 'debug'),
-        ],
-
-        'category' => [
-            'driver' => 'single',
-            'path'   => storage_path('logs/category.log'),
-            'level'  => env('LOG_LEVEL', 'debug'),
-        ],
-
-        'product_service' => [
-            'driver' => 'single',
-            'path'   => storage_path('logs/product_service.log'),
-            'level'  => env('LOG_LEVEL', 'debug'),
-        ],
-
-        'tag' => [
-            'driver' => 'single',
-            'path'   => storage_path('logs/tag.log'),
-            'level'  => env('LOG_LEVEL', 'debug'),
-        ],
-
-        'blog' => [
-            'driver' => 'single',
-            'path'   => storage_path('logs/blog.log'),
+            'path'   => storage_path('logs/inquiry.log'),
             'level'  => env('LOG_LEVEL', 'debug'),
         ],
 
@@ -175,54 +145,17 @@ return [
             'level'  => env('LOG_LEVEL', 'debug'),
         ],
 
-        'warehouse' => [
-            'driver' => 'single',
-            'path'   => storage_path('logs/warehouse.log'),
-            'level'  => env('LOG_LEVEL', 'debug'),
-        ],
-
-        'store' => [
-            'driver' => 'single',
-            'path'   => storage_path('logs/store.log'),
-            'level'  => env('LOG_LEVEL', 'debug'),
-        ],
-
-        'seller' => [
-            'driver' => 'single',
-            'path'   => storage_path('logs/seller.log'),
-            'level'  => env('LOG_LEVEL', 'debug'),
-        ],
-
-        'setting' => [
-            'driver' => 'single',
-            'path'   => storage_path('logs/setting.log'),
-            'level'  => env('LOG_LEVEL', 'debug'),
-        ],
-
         'order' => [
             'driver' => 'single',
             'path'   => storage_path('logs/order.log'),
             'level'  => env('LOG_LEVEL', 'debug'),
         ],
 
-        'cart' => [
+        'service' => [
             'driver' => 'single',
             'path'   => storage_path('logs/cart.log'),
             'level'  => env('LOG_LEVEL', 'debug'),
         ],
-
-        'ticket' => [
-            'driver' => 'single',
-            'path'   => storage_path('logs/ticket.log'),
-            'level'  => env('LOG_LEVEL', 'debug'),
-        ],
-
-        'comment' => [
-            'driver' => 'single',
-            'path'   => storage_path('logs/comment.log'),
-            'level'  => env('LOG_LEVEL', 'debug'),
-        ],
-
 
     ],
 

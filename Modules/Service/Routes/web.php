@@ -15,3 +15,5 @@ use Modules\Service\Http\Controllers\ServiceController;
 */
 
 Route::resource('services', ServiceController::class);
+
+Route::post('services/register', [ServiceController::class, 'registerInquiry'])->name('services.register');
