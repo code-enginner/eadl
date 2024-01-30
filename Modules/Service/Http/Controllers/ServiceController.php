@@ -9,6 +9,8 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
+use Modules\Service\Entities\BackgroundCertificate;
 use function Laravel\Prompts\alert;
 
 class ServiceController extends Controller
@@ -75,16 +77,23 @@ class ServiceController extends Controller
                     'cellphone'  => $request->cellphone,
                 ]);
 
+            $person_info[$request->national_id] = [
+                'national_id' => $request->national_id,
+                'cellphone' => $request->cellphone,
+            ];
+
+            Redis::setex("personInfo:{$request->national_id}", 120, json_encode($person_info));
+
             Log::channel('service')->info('Get Inquiry Success', [
-                'nationalId'  => $request->national_id,
-                'cellphone'   => $request->cellphone,
-                'office_code' => '',
-                'username'    => '',
+                'nationalId'   => $request->national_id,
+                'cellphone'    => $request->cellphone,
+                'office_code'  => '',
+                'username'     => '',
                 'systemResult' => $result->body(),
-                'created_at'  => Carbon::now(),
+                'created_at'   => Carbon::now(),
             ]);
 
-            return view('dashboard::dashboard.trading-credit-inquiry');
+            return view('dashboard::dashboard.trading-credit-inquiry', ['']);
 
         } catch (\Exception $exception) {
             Log::channel('service')->info('Get Inquiry Error', [
@@ -135,6 +144,48 @@ class ServiceController extends Controller
 
     public function registerInquiry(Request $request)
     {
-        dd($request->all());
+        try {
+            $id = BackgroundCertificate::create([
+                'person_status'        => $request->person_status,
+                'receiver_national_id' => $request->receiver_national_id,
+                'organization_id'      => $request->organization_id,
+                'receiver_job_title'   => $request->receiver_job_title,
+                'office_code'          => $request->office_id,
+                'otp_code'             => $request->otp_code,
+                'person_national_id'   => Redis::get('person_national_id'),
+                'person_cellphone'     => Redis::get('person_cellphone'),
+            ]);
+
+
+
+            Redis::
+
+            Log::channel('service')->info('Register Inquiry Success', [
+                'person_status'        => $request->person_status,
+                'receiver_national_id' => $request->receiver_national_id,
+                'organization_id'      => $request->organization_id,
+                'receiver_job_title'   => $request->receiver_job_title,
+                'office_code'          => $request->office_id,
+                'otp_code'             => $request->otp_code,
+                'row_id'               => $id,
+                'created_at'           => Carbon::now()
+            ]);
+
+            return view('dashboard::service.payment');
+
+        } catch (\Exception $exception) {
+            Log::channel('service')->info('Register Inquiry Error', [
+                'person_status'        => $request->person_status,
+                'receiver_national_id' => $request->receiver_national_id,
+                'organization_id'      => $request->organization_id,
+                'receiver_job_title'   => $request->receiver_job_title,
+                'office_code'          => $request->office_id,
+                'otp_code'             => $request->otp_code,
+                'systemMessage'        => $exception->getMessage(),
+                'created_at'           => Carbon::now()
+            ]);
+        }
+
+
     }
 }

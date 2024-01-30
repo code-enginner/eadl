@@ -60,6 +60,7 @@
                 @csrf
 
                 <div class="flex flex-row-reverse justify-stretch ">
+
                     <div class="relative mb-3 ml-3 grow"
                          data-te-input-wrapper-init
                          data-te-class-notch="group flex flex-row-reverse absolute right-0 top-0 w-full max-w-full h-full text-right pointer-events-none"
