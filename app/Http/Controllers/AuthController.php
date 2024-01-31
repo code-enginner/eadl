@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AuthRequest;
 use Illuminate\Http\Request;
 
 
@@ -21,7 +22,7 @@ use SoapClient;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
-class PishkhanController extends Controller
+class AuthController extends Controller
 {
     private $_openID = null;
     private $_openIDAttributes = [];
@@ -34,7 +35,7 @@ class PishkhanController extends Controller
     private $_wsdl = '';
     private $_password = '';
 
-    public function auth(PishkhanAuthRequest $request)
+    public function auth(AuthRequest $request)
     {
         $this->_init();
         return $this->_openIDDispatcher($request);
@@ -60,7 +61,7 @@ class PishkhanController extends Controller
         }
     }
 
-    private function _openIDDispatcher(PishkhanAuthRequest $request)
+    private function _openIDDispatcher(AuthRequest $request)
     {
         if(!$this->_openID->mode)
         {
@@ -138,9 +139,7 @@ class PishkhanController extends Controller
     }
 
 
-    private function _sendOpenIDAuthenticationRequest(
-        pishkhanAuthRequest $request
-    )
+    private function _sendOpenIDAuthenticationRequest(AuthRequest $request)
     {
         // We must FORCE consumer to use pishkhan authentication (identity) server
         $this->_openID->identity = 'http://auth.epishkhan.ir/identity/' .
@@ -148,7 +147,7 @@ class PishkhanController extends Controller
         // $request->input('office');
 
         // We use AX protocol to get userkey from authentication (identity) server
-        $this->_openID->required = ['userkey','operkey'];//???????????????????????????????????????????
+        $this->_openID->required = ['userkey','operkey'];
         // $this->_openID->required = ['operkey'];
 
         // Sending redirect header to user's browser
@@ -168,7 +167,7 @@ class PishkhanController extends Controller
     //     return redirect()->to($this->_openID->authUrl());
     // }
 
-    private function _getUserInfoFromPOS(pishkhanAuthRequest $request)
+    private function _getUserInfoFromPOS(AuthRequest $request)
     {
         // try {
         $result=ppgService::userInfo($request->input('ver_code'),$this->_openIDAttributes['userkey'],$this->_openIDAttributes['operkey']);
@@ -214,7 +213,7 @@ class PishkhanController extends Controller
         //  } catch (\Exception $e)
         //  {
         // dd($e->getMessage());
-        //     Log::emergency('Occurrence point => PishkhanController (_getUserInfoFromPOS method) ***** ' . $e->getMessage());
+        //     Log::emergency('Occurrence point => AuthController (_getUserInfoFromPOS method) ***** ' . $e->getMessage());
         //     $this->_returnError('اطلاعات دفتر از سرویس واسط دریافت نمی شود!');
         // }
     }
