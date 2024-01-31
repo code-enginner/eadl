@@ -212,3 +212,11 @@ This file contains some codes to use as structure and explain some logic code fo
                 checked
             />
     </div>
+
+### Infos
+
+Incomming "pishkhanController" Parameters:
+
+    http://www.bime-epishkhan.ir/api/public/auth/?office=18491849&oper=18491849u1&ver_code=bd854defdc6c974833a292d1b48b00a36703543&nc=13ac3e403442c77cfe1e00a443cfd3d6&hash=WDVaQlJPUDlZOTRsb2c5dVNjZ05uRE0ydG0zc204T0pSZVgydHIwd0pmZFFERk1wbUg3U3VtMVlGRVlmbUJxRg==
+
+
