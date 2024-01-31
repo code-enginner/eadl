@@ -13,8 +13,10 @@
     </div>
 
     <div class="mt-5">
-        <form action="{{ route('services.register') }}" method="POST">
+        <form action="{{ route('services.register') }}" method="POST" enctype="multipart/form-data">
             @csrf
+
+            <input type="hidden" name="hash_id" value="{{ $hashId }}">
 
             <div class="mb-3 min-h-[1.5rem] pl-[1.5rem] flex flex-row-reverse mt-[3rem]">
                 <div class="ml-2">
@@ -23,6 +25,7 @@
                         type="radio"
                         name="person_status"
                         value="realPerson"
+                        checked
                         id="real" />
                     <label
                         class="mt-px relative float-left inline-block mr-[2rem] pl-[0.15rem] hover:cursor-pointer"

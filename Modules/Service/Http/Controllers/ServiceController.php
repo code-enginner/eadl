@@ -17,22 +17,16 @@ class ServiceController extends Controller
 {
     private const MESSAGE = [
         'success' => [
-            'درخواست استعلام با موفقیت انجام شد',
-            '',
-            '',
-            '',
-            '',
+            'کد یکبار مصرف ارسال شد',
         ],
 
         'error' => [
-            '',
-            '',
-            '',
-            '',
+            'سامانه به طور موقت از دسترس خارج شده است، بعدا تلاش کنید',
+            'تاریخ انقضای کد یکبار مصرف تمام شده است، مجددا تلاش کنید',
         ]
     ];
 
-    private const CONFIG = [];
+    private const REDISPREFIX = 'personInfo:';
 
     /**
      * Display a listing of the resource.
@@ -51,7 +45,7 @@ class ServiceController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Send otpCode to the customer
      */
     public function store(Request $request)
     {
@@ -72,31 +66,35 @@ class ServiceController extends Controller
                     'Content-Type' => 'application/json'
                 ])
                 ->asJson()
+                ->timeout(30)
                 ->post($config['baseURL'], [
                     'nationalId' => $request->national_id,
                     'cellphone'  => $request->cellphone,
                 ]);
 
-            $person_info[$request->national_id] = [
-                'national_id' => $request->national_id,
-                'cellphone' => $request->cellphone,
+            $personInfo = [
+                'nationalId' => $request->national_id,
+                'cellphone'   => $request->cellphone,
             ];
+            //
+            $hashId = md5($request->national_id);
 
-            Redis::setex("personInfo:{$request->national_id}", 120, json_encode($person_info));
+            // Cache Personal info to store them in next step ("registerInquiry" method)
+            Redis::setex("personInfo:{$hashId}", 120, json_encode($personInfo));
 
             Log::channel('service')->info('Get Inquiry Success', [
                 'nationalId'   => $request->national_id,
                 'cellphone'    => $request->cellphone,
                 'office_code'  => '',
                 'username'     => '',
-                'systemResult' => $result->body(),
+                'systemResult' => json_decode($result->body()),
                 'created_at'   => Carbon::now(),
             ]);
 
-            return view('dashboard::dashboard.trading-credit-inquiry', ['']);
+            return view('dashboard::dashboard.trading-credit-inquiry', ['hashId' => $hashId])->with('success', self::MESSAGE['success'][0]);
 
         } catch (\Exception $exception) {
-            Log::channel('service')->info('Get Inquiry Error', [
+            Log::channel('service')->emergency('Get Inquiry Error', [
                 'nationalId'    => $request->national_id,
                 'cellphone'     => $request->cellphone,
                 'office_code'   => '',
@@ -105,7 +103,7 @@ class ServiceController extends Controller
                 'created_at'    => Carbon::now()
             ]);
 
-            return redirect()->back()->withErrors('');
+            return redirect()->back()->withErrors(self::MESSAGE['error'][0]);
         }
     }
 
@@ -144,6 +142,14 @@ class ServiceController extends Controller
 
     public function registerInquiry(Request $request)
     {
+        if (!Redis::exists(self::REDISPREFIX . $request->hash_id)) {
+            return redirect()
+                ->route('dashboard.admin')
+                ->withErrors(self::MESSAGE['error'][1]);
+        }
+
+        $personInfo = json_decode(Redis::get(self::REDISPREFIX . $request->hash_id), TRUE);
+
         try {
             $id = BackgroundCertificate::create([
                 'person_status'        => $request->person_status,
@@ -152,13 +158,9 @@ class ServiceController extends Controller
                 'receiver_job_title'   => $request->receiver_job_title,
                 'office_code'          => $request->office_id,
                 'otp_code'             => $request->otp_code,
-                'person_national_id'   => Redis::get('person_national_id'),
-                'person_cellphone'     => Redis::get('person_cellphone'),
+                'person_national_id'   => $personInfo['nationalId'],
+                'person_cellphone'     => $personInfo['cellphone'],
             ]);
-
-
-
-            Redis::
 
             Log::channel('service')->info('Register Inquiry Success', [
                 'person_status'        => $request->person_status,
@@ -174,7 +176,7 @@ class ServiceController extends Controller
             return view('dashboard::service.payment');
 
         } catch (\Exception $exception) {
-            Log::channel('service')->info('Register Inquiry Error', [
+            Log::channel('service')->error('Register Inquiry Error', [
                 'person_status'        => $request->person_status,
                 'receiver_national_id' => $request->receiver_national_id,
                 'organization_id'      => $request->organization_id,
@@ -184,8 +186,13 @@ class ServiceController extends Controller
                 'systemMessage'        => $exception->getMessage(),
                 'created_at'           => Carbon::now()
             ]);
+
+            return redirect()->route('');
         }
+    }
 
-
+    private function payment()
+    {
+        // todo use ppg service
     }
 }

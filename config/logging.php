@@ -153,7 +153,7 @@ return [
 
         'service' => [
             'driver' => 'single',
-            'path'   => storage_path('logs/cart.log'),
+            'path'   => storage_path('logs/service.log'),
             'level'  => env('LOG_LEVEL', 'debug'),
         ],
 
