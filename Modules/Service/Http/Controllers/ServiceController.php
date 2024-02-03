@@ -28,6 +28,13 @@ class ServiceController extends Controller
 
     private const REDISPREFIX = 'personInfo:';
 
+    private array $config = [];
+
+    public function __construct()
+    {
+        $this->getConfig();
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -39,9 +46,16 @@ class ServiceController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        return view('service::create');
+        //if otpCode expired or direct access to this route, return
+        if (!Redis::exists(self::REDISPREFIX . $request->session()->get('hashId'))) {
+            session()->forget('hashId');
+
+            return redirect()->route('panel');
+        }
+
+        return view('dashboard::dashboard.trading-credit-inquiry', ['hashId' => $request->session()->get('hashId')])->with('success', self::MESSAGE['success'][0]);
     }
 
     /**
@@ -49,62 +63,7 @@ class ServiceController extends Controller
      */
     public function store(Request $request)
     {
-        $config = [];
-        //
-        if (config('app.env') === 'production') {
-            $config = config('inquiry.production');
-        } elseif (config('app.env') === 'local') {
-            $config = config('inquiry.local');
-        }
 
-        //todo add form request
-
-        try {
-            $result = Http::withBasicAuth($config['Username'], $config['Password'])
-                ->withHeaders([
-                    'X-API-KEY'    => $config['X-API-KEY'],
-                    'Content-Type' => 'application/json'
-                ])
-                ->asJson()
-                ->timeout(30)
-                ->post($config['baseURL'], [
-                    'nationalId' => $request->national_id,
-                    'cellphone'  => $request->cellphone,
-                ]);
-
-            $personInfo = [
-                'nationalId' => $request->national_id,
-                'cellphone'   => $request->cellphone,
-            ];
-            //
-            $hashId = md5($request->national_id);
-
-            // Cache Personal info to store them in next step ("registerInquiry" method)
-            Redis::setex("personInfo:{$hashId}", 120, json_encode($personInfo));
-
-            Log::channel('service')->info('Get Inquiry Success', [
-                'nationalId'   => $request->national_id,
-                'cellphone'    => $request->cellphone,
-                'office_code'  => '',
-                'username'     => '',
-                'systemResult' => json_decode($result->body()),
-                'created_at'   => Carbon::now(),
-            ]);
-
-            return view('dashboard::dashboard.trading-credit-inquiry', ['hashId' => $hashId])->with('success', self::MESSAGE['success'][0]);
-
-        } catch (\Exception $exception) {
-            Log::channel('service')->emergency('Get Inquiry Error', [
-                'nationalId'    => $request->national_id,
-                'cellphone'     => $request->cellphone,
-                'office_code'   => '',
-                'username'      => '',
-                'systemMessage' => $exception->getMessage(),
-                'created_at'    => Carbon::now()
-            ]);
-
-            return redirect()->back()->withErrors(self::MESSAGE['error'][0]);
-        }
     }
 
     /**
@@ -191,8 +150,71 @@ class ServiceController extends Controller
         }
     }
 
+
+    public function getConfig()
+    {
+        if (config('app.env') === 'production') {
+            $this->config = config('inquiry.production');
+        } elseif (config('app.env') === 'local') {
+            $this->config = config('inquiry.local');
+        }
+    }
+
     private function payment()
     {
         // todo use ppg service
+    }
+
+
+    public function getInquiry(Request $request)
+    {
+        //todo add form request
+
+        try {
+            $result = Http::withBasicAuth($this->config['Username'], $this->config['Password'])
+                ->withHeaders([
+                    'X-API-KEY'    => $this->config['X-API-KEY'],
+                    'Content-Type' => 'application/json'
+                ])
+                ->asJson()
+                ->timeout(30)
+                ->post($this->config['baseURL'], [
+                    'nationalId' => $request->national_id,
+                    'cellphone'  => $request->cellphone,
+                ]);
+
+            $personInfo = [
+                'nationalId' => $request->national_id,
+                'cellphone'   => $request->cellphone,
+            ];
+            //
+            $hashId = md5($request->national_id);
+
+            // Cache Personal info to store them in next step ("registerInquiry" method)
+            Redis::setex("personInfo:{$hashId}", 120, json_encode($personInfo));
+
+            Log::channel('service')->info('Get Inquiry Success', [
+                'nationalId'   => $request->national_id,
+                'cellphone'    => $request->cellphone,
+                'office_code'  => '',
+                'username'     => '',
+                'systemResult' => json_decode($result->body()),
+                'created_at'   => Carbon::now(),
+            ]);
+
+            return redirect()->route('services.create')->with('hashId', $hashId);
+
+        } catch (\Exception $exception) {
+            Log::channel('service')->emergency('Get Inquiry Error', [
+                'nationalId'    => $request->national_id,
+                'cellphone'     => $request->cellphone,
+                'office_code'   => '',
+                'username'      => '',
+                'systemMessage' => $exception->getMessage(),
+                'created_at'    => Carbon::now()
+            ]);
+
+            return redirect()->back()->withErrors(self::MESSAGE['error'][0]);
+        }
     }
 }

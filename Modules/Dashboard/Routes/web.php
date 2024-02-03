@@ -15,10 +15,10 @@ use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\AdminController;
 use Modules\Dashboard\Http\Controllers\DashboardController;
 
-Route::prefix('dashboard/admin')->group(function () {
+Route::prefix('panel')->group(function () {
 
 //    Route::middleware('adminAuth')->group(function () {
-        Route::get('/', [DashboardController::class, 'index'])->name('dashboard.admin');
+        Route::get('/', [DashboardController::class, 'index'])->name('panel');
 //    });
 
 });

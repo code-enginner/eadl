@@ -16,6 +16,8 @@ use Modules\Service\Http\Controllers\ServiceController;
 
 Route::resource('services', ServiceController::class);
 
+Route::post('services/get/inquiry', [ServiceController::class, 'getInquiry'])->name('services.get.inquiry');
+
 Route::post('services/register', [ServiceController::class, 'registerInquiry'])->name('services.register');
 
 Route::post('services/payment', [ServiceController::class, 'payment'])->name('services.payment');
