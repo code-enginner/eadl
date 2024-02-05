@@ -13,7 +13,7 @@
     </div>
 
     <div class="mt-5">
-        <form action="{{ route('services.register') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('services.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <input type="hidden" name="hash_id" value="{{ $hashId }}">
@@ -84,7 +84,7 @@
                         placeholder="شناسه سازمان استعلام گیرنده"
                     /> <label
                         for="organization-id"
-                        class="pointer-events-none absolute right-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-200 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:right-2 peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
+                        class="pointer-events-none absolute right-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-200 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:right-0.5 peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
                     >شناسه سازمان استعلام گیرنده </label>
                 </div>
             </div>

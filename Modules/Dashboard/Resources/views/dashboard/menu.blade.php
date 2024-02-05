@@ -18,7 +18,7 @@
             <i class="mdi mdi-close text-[1.5rem] outline-none"></i>
         </button>
 
-        <a href="{{ route('dashboard.admin') }}"
+        <a href="{{ route('panel') }}"
            class="block cursor-pointer w-full h-[5rem]"
         > <img
                 src=""

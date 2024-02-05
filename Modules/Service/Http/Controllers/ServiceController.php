@@ -23,6 +23,7 @@ class ServiceController extends Controller
         'error' => [
             'سامانه به طور موقت از دسترس خارج شده است، بعدا تلاش کنید',
             'تاریخ انقضای کد یکبار مصرف تمام شده است، مجددا تلاش کنید',
+            'ثبت درخواست استعلام ناموفق بود',
         ]
     ];
 
@@ -48,7 +49,7 @@ class ServiceController extends Controller
      */
     public function create(Request $request)
     {
-        //if otpCode expired or direct access to this route, return
+        //Prevent user access if otpCode expired or user tries to access direct to this route without get otpCode.
         if (!Redis::exists(self::REDISPREFIX . $request->session()->get('hashId'))) {
             session()->forget('hashId');
 
@@ -58,12 +59,60 @@ class ServiceController extends Controller
         return view('dashboard::dashboard.trading-credit-inquiry', ['hashId' => $request->session()->get('hashId')])->with('success', self::MESSAGE['success'][0]);
     }
 
-    /**
-     * Send otpCode to the customer
-     */
+
     public function store(Request $request)
     {
+        //todo use form request
 
+        if (!Redis::exists(self::REDISPREFIX . $request->hash_id)) {
+            return redirect()
+                ->route('panel')
+                ->withErrors(self::MESSAGE['error'][1]);
+        }
+
+        $personInfo = json_decode(Redis::get(self::REDISPREFIX . $request->hash_id), TRUE);
+
+        try {
+            $id = BackgroundCertificate::create([
+                'person_national_id'   => $personInfo['nationalId'],
+                'person_cellphone'     => $personInfo['cellphone'],
+                'person_status'        => $request->person_status,
+                'receiver_national_id' => $request->receiver_national_id,
+                'organization_id'      => $request->organization_id,
+                'receiver_job_title'   => $request->receiver_job_title,
+                'office_code'          => $request->office_id,
+                'otp_code'             => $request->otp_code,
+            ]);
+
+            Log::channel('service')->info('Register Inquiry Success', [
+                'person_status'        => $request->person_status, // real or legal
+                'receiver_national_id' => $request->receiver_national_id,
+                'organization_id'      => $request->organization_id,
+                'receiver_job_title'   => $request->receiver_job_title,
+                'office_code'          => $request->office_id,
+                'otp_code'             => $request->otp_code,
+                'row_id'               => $id,
+                'created_at'           => Carbon::now()
+            ]);
+
+            return redirect()->route('services.payment.register.create');
+
+        } catch (\Exception $exception) {
+            Log::channel('service')->error('Register Inquiry Error', [
+                'person_status'        => $request->person_status,
+                'receiver_national_id' => $request->receiver_national_id,
+                'organization_id'      => $request->organization_id,
+                'receiver_job_title'   => $request->receiver_job_title,
+                'office_code'          => $request->office_id,
+                'otp_code'             => $request->otp_code,
+                'systemMessage'        => $exception->getMessage(),
+                'created_at'           => Carbon::now()
+            ]);
+
+            return redirect()
+                ->route('panel')
+                ->withErrors(self::MESSAGE['error'][2]);
+        }
     }
 
     /**
@@ -99,58 +148,6 @@ class ServiceController extends Controller
     }
 
 
-    public function registerInquiry(Request $request)
-    {
-        if (!Redis::exists(self::REDISPREFIX . $request->hash_id)) {
-            return redirect()
-                ->route('dashboard.admin')
-                ->withErrors(self::MESSAGE['error'][1]);
-        }
-
-        $personInfo = json_decode(Redis::get(self::REDISPREFIX . $request->hash_id), TRUE);
-
-        try {
-            $id = BackgroundCertificate::create([
-                'person_status'        => $request->person_status,
-                'receiver_national_id' => $request->receiver_national_id,
-                'organization_id'      => $request->organization_id,
-                'receiver_job_title'   => $request->receiver_job_title,
-                'office_code'          => $request->office_id,
-                'otp_code'             => $request->otp_code,
-                'person_national_id'   => $personInfo['nationalId'],
-                'person_cellphone'     => $personInfo['cellphone'],
-            ]);
-
-            Log::channel('service')->info('Register Inquiry Success', [
-                'person_status'        => $request->person_status,
-                'receiver_national_id' => $request->receiver_national_id,
-                'organization_id'      => $request->organization_id,
-                'receiver_job_title'   => $request->receiver_job_title,
-                'office_code'          => $request->office_id,
-                'otp_code'             => $request->otp_code,
-                'row_id'               => $id,
-                'created_at'           => Carbon::now()
-            ]);
-
-            return view('dashboard::service.payment');
-
-        } catch (\Exception $exception) {
-            Log::channel('service')->error('Register Inquiry Error', [
-                'person_status'        => $request->person_status,
-                'receiver_national_id' => $request->receiver_national_id,
-                'organization_id'      => $request->organization_id,
-                'receiver_job_title'   => $request->receiver_job_title,
-                'office_code'          => $request->office_id,
-                'otp_code'             => $request->otp_code,
-                'systemMessage'        => $exception->getMessage(),
-                'created_at'           => Carbon::now()
-            ]);
-
-            return redirect()->route('');
-        }
-    }
-
-
     public function getConfig()
     {
         if (config('app.env') === 'production') {
@@ -158,11 +155,6 @@ class ServiceController extends Controller
         } elseif (config('app.env') === 'local') {
             $this->config = config('inquiry.local');
         }
-    }
-
-    private function payment()
-    {
-        // todo use ppg service
     }
 
 
@@ -216,5 +208,19 @@ class ServiceController extends Controller
 
             return redirect()->back()->withErrors(self::MESSAGE['error'][0]);
         }
+    }
+
+
+    public function paymentRegisterCreate()
+    {
+        //todo check redis key exist
+
+        return view('dashboard::dashboard.payment-form');
+    }
+
+    public function paymentRegisterStore(Request $request)
+    {
+        //todo use ppgService
+        dd($request->all());
     }
 }
