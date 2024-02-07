@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Session;
 use Modules\Service\Entities\BackgroundCertificate;
 use function Laravel\Prompts\alert;
 
@@ -73,7 +74,7 @@ class ServiceController extends Controller
         $personInfo = json_decode(Redis::get(self::REDISPREFIX . $request->hash_id), TRUE);
 
         try {
-            $id = BackgroundCertificate::create([
+            $result = BackgroundCertificate::create([
                 'person_national_id'   => $personInfo['nationalId'],
                 'person_cellphone'     => $personInfo['cellphone'],
                 'person_status'        => $request->person_status,
@@ -85,14 +86,9 @@ class ServiceController extends Controller
             ]);
 
             Log::channel('service')->info('Register Inquiry Success', [
-                'person_status'        => $request->person_status, // real or legal
-                'receiver_national_id' => $request->receiver_national_id,
-                'organization_id'      => $request->organization_id,
-                'receiver_job_title'   => $request->receiver_job_title,
-                'office_code'          => $request->office_id,
-                'otp_code'             => $request->otp_code,
-                'row_id'               => $id,
-                'created_at'           => Carbon::now()
+                'inserted_row'       => $result,
+                'created_at'         => Carbon::now(),
+                'persian_created_at' => Carbon::now(),
             ]);
 
             return redirect()->route('services.payment.register.create');
@@ -177,13 +173,14 @@ class ServiceController extends Controller
 
             $personInfo = [
                 'nationalId' => $request->national_id,
-                'cellphone'   => $request->cellphone,
+                'cellphone'  => $request->cellphone,
             ];
             //
             $hashId = md5($request->national_id);
+            Session::put('hashId', $hashId);
 
             // Cache Personal info to store them in next step ("registerInquiry" method)
-            Redis::setex("personInfo:{$hashId}", 120, json_encode($personInfo));
+            Redis::setex("personInfo:{$hashId}", 2000, json_encode($personInfo));
 
             Log::channel('service')->info('Get Inquiry Success', [
                 'nationalId'   => $request->national_id,
@@ -213,6 +210,11 @@ class ServiceController extends Controller
 
     public function paymentRegisterCreate()
     {
+        if (!Redis::exists(self::REDISPREFIX . session()->get('hashId'))) {
+            session()->forget('hashId');
+
+            return redirect()->route('panel');
+        }
         //todo check redis key exist
 
         return view('dashboard::dashboard.payment-form');
