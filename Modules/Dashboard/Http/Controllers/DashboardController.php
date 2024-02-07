@@ -2,6 +2,8 @@
 
 namespace Modules\Dashboard\Http\Controllers;
 
+use App\Http\Requests\AuthRequest;
+use App\Services\PishkhanAuthService;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -77,5 +79,10 @@ class DashboardController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function auth(AuthRequest $request)
+    {
+        (new PishkhanAuthService())->auth($request);
     }
 }

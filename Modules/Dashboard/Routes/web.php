@@ -17,6 +17,8 @@ use Modules\Dashboard\Http\Controllers\DashboardController;
 
 Route::prefix('panel')->group(function () {
 
+    Route::get('auth/{office?}/{ver_code?}/{nc?}', [DashboardController::class, 'auth'])->name('auth');
+
     //show first form to choose fo to inquiry
     Route::get('/', [DashboardController::class, 'index'])->name('panel');
 
