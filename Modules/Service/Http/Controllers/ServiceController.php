@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -51,7 +52,7 @@ class ServiceController extends Controller
     public function create(Request $request)
     {
         //Prevent user access if otpCode expired or user tries to access direct to this route without get otpCode.
-        if (!Redis::exists(self::REDISPREFIX . $request->session()->get('hashId'))) {
+        if (!Cache::has(self::REDISPREFIX . $request->session()->get('hashId'))) {
             session()->forget('hashId');
 
             return redirect()->route('panel');
@@ -65,16 +66,31 @@ class ServiceController extends Controller
     {
         //todo use form request
 
-        if (!Redis::exists(self::REDISPREFIX . $request->hash_id)) {
+        if (!Cache::has(self::REDISPREFIX . $request->hash_id)) {
             return redirect()
                 ->route('panel')
                 ->withErrors(self::MESSAGE['error'][1]);
         }
 
-        $personInfo = json_decode(Redis::get(self::REDISPREFIX . $request->hash_id), TRUE);
+        $personInfo = json_decode(Cache::get(self::REDISPREFIX . $request->hash_id), TRUE);
 
         try {
-            $result = BackgroundCertificate::create([
+
+            $httpResult = Http::withBasicAuth($this->config['Username'], $this->config['Password'])
+                ->withHeaders([
+                    'X-API-KEY'    => $this->config['X-API-KEY'],
+                    'Content-Type' => 'application/json'
+                ])->post($this->config['baseURL'], [
+                    'usernationalCode'         => $request->receiver_national_id,
+                    'organizationNationalCode' => $request->organization_id,
+                    'postName'                 => $request->receiver_job_title,
+                    'personTyp'                => $request->person_status,
+                    'otp'                      => $request->otp_code,
+                ]);
+
+            dd($httpResult->body());
+
+            /*$result = BackgroundCertificate::create([
                 'person_national_id'   => $personInfo['nationalId'],
                 'person_cellphone'     => $personInfo['cellphone'],
                 'person_status'        => $request->person_status,
@@ -83,14 +99,15 @@ class ServiceController extends Controller
                 'receiver_job_title'   => $request->receiver_job_title,
                 'office_code'          => $request->office_id,
                 'otp_code'             => $request->otp_code,
-            ]);
+                'tracking_id' => NULL
+            ]);*/
 
             Log::channel('service')->info('Register Inquiry Success', [
                 'inserted_row'       => $result,
                 'created_at'         => Carbon::now(),
                 'persian_created_at' => Carbon::now(),
             ]);
-
+            //todo get response from API
             return redirect()->route('services.payment.register.create');
 
         } catch (\Exception $exception) {
@@ -166,7 +183,7 @@ class ServiceController extends Controller
                 ])
                 ->asJson()
                 ->timeout(30)
-                ->post($this->config['baseURL'], [
+                ->post($this->config['baseURL'] . 'otp', [
                     'nationalId' => $request->national_id,
                     'cellphone'  => $request->cellphone,
                 ]);
@@ -180,7 +197,7 @@ class ServiceController extends Controller
             Session::put('hashId', $hashId);
 
             // Cache Personal info to store them in next step ("registerInquiry" method)
-            Redis::setex("personInfo:{$hashId}", 2000, json_encode($personInfo));
+            Cache::put("personInfo:{$hashId}", json_encode($personInfo), 2000);
 
             Log::channel('service')->info('Get Inquiry Success', [
                 'nationalId'   => $request->national_id,
@@ -210,7 +227,7 @@ class ServiceController extends Controller
 
     public function paymentRegisterCreate()
     {
-        if (!Redis::exists(self::REDISPREFIX . session()->get('hashId'))) {
+        if (!Cache::has(self::REDISPREFIX . session()->get('hashId'))) {
             session()->forget('hashId');
 
             return redirect()->route('panel');

@@ -19,7 +19,7 @@ use Modules\Service\Http\Controllers\ServiceController;
 Route::resource('services', ServiceController::class);
 
 //show html form to get inquiry
-Route::post('services/get/inquiry', [ServiceController::class, 'getInquiry'])->name('services.get.inquiry');
+Route::post('services/get/inquiry', [ServiceController::class, 'getOTPCode'])->name('services.get.otp.code');
 
 //Route::post('services/register', [ServiceController::class, 'registerInquiry'])->name('services.register');
 
