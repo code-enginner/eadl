@@ -19,11 +19,12 @@ use Modules\Service\Http\Controllers\ServiceController;
 Route::resource('services', ServiceController::class);
 
 //show html form to get inquiry
-Route::post('services/get/inquiry', [ServiceController::class, 'getOTPCode'])->name('services.get.otp.code');
+Route::prefix('services')->group(function () {
+    Route::post('get/inquiry', [ServiceController::class, 'getOTPCode'])->name('services.get.otp.code');
 
-//Route::post('services/register', [ServiceController::class, 'registerInquiry'])->name('services.register');
+    //show html form with single input to payment
+    Route::get('payment/register/create', [ServiceController::class, 'paymentRegisterCreate'])->name('services.payment.register.create');
 
-//show html form with single input to payment
-Route::get('services/payment/register/create', [ServiceController::class, 'paymentRegisterCreate'])->name('services.payment.register.create');
+    Route::post('payment/register/store', [ServiceController::class, 'paymentRegisterStore'])->name('services.payment.register.store');
+});
 
-Route::post('services/payment/register/store', [ServiceController::class, 'paymentRegisterStore'])->name('services.payment.register.store');

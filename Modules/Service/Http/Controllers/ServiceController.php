@@ -26,10 +26,13 @@ class ServiceController extends Controller
             'سامانه به طور موقت از دسترس خارج شده است، بعدا تلاش کنید',
             'تاریخ انقضای کد یکبار مصرف تمام شده است، مجددا تلاش کنید',
             'ثبت درخواست استعلام ناموفق بود',
+            'کد پیگیری قابل بازیابی نیست'
         ]
     ];
 
-    private const REDISPREFIX = 'personInfo:';
+    private const CACHEPREFIX = 'personInfo:';
+
+    private $trackingCode = NULL;
 
     private array $config = [];
 
@@ -38,21 +41,11 @@ class ServiceController extends Controller
         $this->getConfig();
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        return view('service::index');
-    }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(Request $request)
     {
         //Prevent user access if otpCode expired or user tries to access direct to this route without get otpCode.
-        if (!Cache::has(self::REDISPREFIX . $request->session()->get('hashId'))) {
+        if (!Cache::has(self::CACHEPREFIX . $request->session()->get('hashId'))) {
             session()->forget('hashId');
 
             return redirect()->route('panel');
@@ -66,16 +59,15 @@ class ServiceController extends Controller
     {
         //todo use form request
 
-        if (!Cache::has(self::REDISPREFIX . $request->hash_id)) {
+        if (!Cache::has(self::CACHEPREFIX . $request->hash_id)) {
             return redirect()
                 ->route('panel')
                 ->withErrors(self::MESSAGE['error'][1]);
         }
 
-        $personInfo = json_decode(Cache::get(self::REDISPREFIX . $request->hash_id), TRUE);
+        $personInfo = json_decode(Cache::get(self::CACHEPREFIX . $request->hash_id), TRUE);
 
         try {
-
             $httpResult = Http::withBasicAuth($this->config['Username'], $this->config['Password'])
                 ->withHeaders([
                     'X-API-KEY'    => $this->config['X-API-KEY'],
@@ -88,9 +80,20 @@ class ServiceController extends Controller
                     'otp'                      => $request->otp_code,
                 ]);
 
-            dd($httpResult->body());
+            //Returned response from API hase false
+            $httpResultResponse = json_decode($httpResult->body(), TRUE);
+            if ((bool)$httpResultResponse['status'] === FALSE) {
+                return redirect()->back()->withErrors($httpResultResponse['message']);
+            }
 
-            /*$result = BackgroundCertificate::create([
+            //Extract the trackingCode from API response and fill the "$this->trackingCode"
+            $this->extractTrackingCode($httpResultResponse);
+
+            if (is_null($this->trackingCode)) {
+                return redirect()->back()->withErrors(self::MESSAGE['error'][3]);
+            }
+
+            $result = BackgroundCertificate::create([
                 'person_national_id'   => $personInfo['nationalId'],
                 'person_cellphone'     => $personInfo['cellphone'],
                 'person_status'        => $request->person_status,
@@ -99,8 +102,8 @@ class ServiceController extends Controller
                 'receiver_job_title'   => $request->receiver_job_title,
                 'office_code'          => $request->office_id,
                 'otp_code'             => $request->otp_code,
-                'tracking_id' => NULL
-            ]);*/
+                'tracking_id' => $this->trackingCode
+            ]);
 
             Log::channel('service')->info('Register Inquiry Success', [
                 'inserted_row'       => $result,
@@ -128,38 +131,6 @@ class ServiceController extends Controller
         }
     }
 
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('service::show');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('service::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id): RedirectResponse
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
-    }
-
 
     public function getConfig()
     {
@@ -171,7 +142,7 @@ class ServiceController extends Controller
     }
 
 
-    public function getInquiry(Request $request)
+    public function getOTPCode(Request $request)
     {
         //todo add form request
 
@@ -187,6 +158,19 @@ class ServiceController extends Controller
                     'nationalId' => $request->national_id,
                     'cellphone'  => $request->cellphone,
                 ]);
+
+            $httpResult = json_decode($result, TRUE);
+            if ((bool)$httpResult['status'] === FALSE) {
+                Log::channel('service')->emergency('Get Inquiry Error', [
+                    'nationalId'    => $request->national_id,
+                    'cellphone'     => $request->cellphone,
+                    'office_code'   => '',
+                    'username'      => '',
+                    'systemMessage' => $httpResult['message'],
+                    'created_at'    => Carbon::now()
+                ]);
+            }
+            dd($httpResult);
 
             $personInfo = [
                 'nationalId' => $request->national_id,
@@ -227,7 +211,7 @@ class ServiceController extends Controller
 
     public function paymentRegisterCreate()
     {
-        if (!Cache::has(self::REDISPREFIX . session()->get('hashId'))) {
+        if (!Cache::has(self::CACHEPREFIX . session()->get('hashId'))) {
             session()->forget('hashId');
 
             return redirect()->route('panel');
@@ -241,5 +225,16 @@ class ServiceController extends Controller
     {
         //todo use ppgService
         dd($request->all());
+    }
+
+
+    private function extractTrackingCode($response)
+    {
+        $tmp = json_decode($response);
+        $string = $tmp['result']['data'];
+        //
+        preg_match('/\b([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})\b/', $string, $matches);
+
+        $this->trackingCode = $matches[1];
     }
 }

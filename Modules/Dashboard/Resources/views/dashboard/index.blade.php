@@ -56,7 +56,7 @@
             aria-labelledby="tabs-home-tab01"
             data-te-tab-active>
 
-            <form action="{{ route('services.get.inquiry') }}" method="POST">
+            <form action="{{ route('services.get.otp.code') }}" method="POST">
                 @csrf
 
                 <div class="flex flex-row-reverse justify-stretch ">
