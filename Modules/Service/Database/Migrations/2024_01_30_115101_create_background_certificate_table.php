@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('receiver_job_title')->comment('سِمت استعلام گیرنده');
             $table->string('office_code')->nullable()->index();
             $table->string('otp_code');
+            $table->string('tracking_id');
             $table->softDeletes();
             $table->timestamps();
         });

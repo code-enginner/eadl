@@ -11,6 +11,19 @@
         <div><h1 class="inline-block text-xl"> استعلام اعتبار معاملاتی </h1></div>
     </div>
 
+    @if(@$errors->any())
+        <div>Errors:</div>
+        @foreach($errors->all() as $error)
+            <div>{{ $error }}</div>
+        @endforeach
+    @endif
+
+    @if(session('success'))
+        <div>Success:</div>
+        <div>{{ session('success') }}</div>
+    @endif
+
+
     <!--Tabs navigation-->
     <ul
         class="mb-5 mt-[4rem] flex list-none flex-row flex-wrap border-b-0 px-5"
@@ -73,6 +86,7 @@
                             id="national-id"
                             name="national_id"
                             placeholder="کد ملی استعلام شونده"
+                            value="3920101855"
                         /> <label
                             for="national-id"
                             class="pointer-events-none absolute right-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-200 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:right-2 peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
@@ -91,6 +105,7 @@
                             id="cellphone"
                             name="cellphone"
                             placeholder="شماره همراه استعلام شونده"
+                            value="09128445319"
                         /> <label
                             for="cellphone"
                             class="pointer-events-none absolute right-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-200 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:right-2 peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
