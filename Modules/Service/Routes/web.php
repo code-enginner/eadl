@@ -26,5 +26,11 @@ Route::prefix('services')->group(function () {
     Route::get('payment/register/create', [ServiceController::class, 'paymentRegisterCreate'])->name('services.payment.register.create');
 
     Route::post('payment/register/store', [ServiceController::class, 'paymentRegisterStore'])->name('services.payment.register.store');
+
+
+
+    Route::prefix('confirmation')->group(function () {
+        Route::post('store', [ServiceController::class, 'confirmationStore'])->name('confirmation.store');
+    });
 });
 

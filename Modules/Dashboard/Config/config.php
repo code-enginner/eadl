@@ -10,7 +10,7 @@ return [
         'active' => 1,
         'order' => 1,
         'classes' => 'active open',
-        'route' => 'admin', //If this Set to 'null' Converts to "javascript:void(0)"
+        'route' => '/panel', //If this Set to 'null' Converts to "javascript:void(0)"
         'children' => [],
     ]
 ];

@@ -80,7 +80,7 @@ class ServiceController extends Controller
                     'Content-Type' => 'application/json'
                 ])
                 ->asJson()
-                ->post($this->config['baseURL'] . '/aggregate', [
+                ->post($this->config['baseURL'] . '/gwaggregateg/aggregate', [
                     'usernationalCode'         => $request->receiver_national_id,
                     'organizationNationalCode' => $request->organization_id,
                     'postName'                 => $request->receiver_job_title,
@@ -125,7 +125,7 @@ class ServiceController extends Controller
                 'tracking_id'          => $this->trackingCode
             ]);
 
-            Cache::put('tracking_id', )
+//            Cache::put($result->id, );
 
             Log::channel('service')->info('Register Inquiry Success', [
                 'inserted_row'       => $result,
@@ -176,7 +176,7 @@ class ServiceController extends Controller
                     'Content-Type' => 'application/json'
                 ])
                 ->asJson()
-                ->post($this->config['baseURL'] . '/otp', [
+                ->post($this->config['baseURL'] . '/gwaggregateg/otp', [
                     'nationalId' => $request->national_id,
                     'cellphone'  => $request->cellphone,
                 ]);
@@ -235,11 +235,11 @@ class ServiceController extends Controller
 
     public function paymentRegisterCreate()
     {
-        if (!Cache::has(self::CACHEPREFIX . session()->get('hashId'))) {
+        /*if (!Cache::has(self::CACHEPREFIX . session()->get('hashId'))) {
             session()->forget('hashId');
 
             return redirect()->route('panel');
-        }
+        }*/
         //todo check redis key exist
 
         return view('dashboard::dashboard.payment-form');
@@ -260,5 +260,22 @@ class ServiceController extends Controller
         preg_match('/\b([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})\b/', $string, $matches);
 
         $this->trackingCode = $matches[1];
+    }
+
+
+    public function confirmationStore(Request $request)
+    {
+        Http::withBasicAuth($this->config['Username'], $this->config['Password'])
+            ->withHeaders([
+                'X-API-KEY' =>  $this->config['X-API-KEY'],
+                'Content-Type' => 'application/json'
+            ])
+            ->asJson()
+            ->post($this->config['baseURL'] . '/clearence', [
+                'No' => '',
+                'IssueDate' => '',
+                'CallerNationalCode' => '',
+                'CallerPostTitle' => '',
+            ]);
     }
 }

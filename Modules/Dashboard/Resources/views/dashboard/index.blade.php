@@ -133,7 +133,7 @@
             role="tabpanel"
             aria-labelledby="tabs-profile-tab01">
 
-            <form action="" method="POST">
+            <form action="{{ route('confirmation.store') }}" method="POST">
                 @csrf
 
                 <div class="flex flex-row-reverse justify-stretch ">
@@ -146,12 +146,31 @@
                         <input
                             type="text"
                             class="text-right peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
-                            id="name"
-                            placeholder="کد ملی استعلام شونده"
+                            id="no"
+                            placeholder="شماره گواهی عدم سوء پیشینه"
+                            name="no"
                         /> <label
-                            for="name"
+                            for="no"
                             class="pointer-events-none absolute right-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-200 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:right-2 peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
-                        >کد ملی استعلام شونده </label>
+                        >شماره گواهی عدم سوء پیشینه </label>
+                    </div>
+
+                    <div class="relative mb-3 ml-3 grow"
+                         data-te-input-wrapper-init
+                         data-te-class-notch="group flex flex-row-reverse absolute right-0 top-0 w-full max-w-full h-full text-right pointer-events-none"
+                         data-te-class-notch-leading="pointer-events-none border border-solid box-border bg-transparent transition-all duration-200 ease-linear motion-reduce:transition-none left-0 top-0 h-full w-2 border-l-0 rounded-r-[0.25rem] group-data-[te-input-focused]:border-l-0 group-data-[te-input-state-active]:border-l-0 border-neutral-300 dark:border-neutral-600 group-data-[te-input-focused]:shadow-[1px_0_0_#3b71ca,_0_1px_0_0_#3b71ca,_0_-1px_0_0_#3b71ca] group-data-[te-input-focused]:border-primary"
+                         data-te-class-notch-trailing="pointer-events-none border border-solid box-border bg-transparent transition-all duration-200 ease-linear motion-reduce:transition-none grow h-full border-r-0 rounded-l-[0.25rem] group-data-[te-input-focused]:border-r-0 group-data-[te-input-state-active]:border-r-0 border-neutral-300 dark:border-neutral-600 group-data-[te-input-focused]:shadow-[_0_-1px_0_0_#3b71ca,_0_1px_0_0_#3b71ca,-1px_0_0_#3b71ca] group-data-[te-input-focused]:border-primary"
+                    >
+                        <input
+                            type="text"
+                            class="text-right peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
+                            id="caller-national-code"
+                            placeholder="کد ملی استعلام گیرنده"
+                            name="caller_national_code"
+                        /> <label
+                            for="caller-national-code"
+                            class="pointer-events-none absolute right-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-200 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:right-2 peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
+                        >کد ملی استعلام گیرنده </label>
                     </div>
 
                     <div class="relative mb-3 ml-3 grow"
@@ -164,14 +183,14 @@
                             type="text"
                             class="text-right peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
                             id="name"
-                            placeholder="شماره همراه استعلام شونده"
+                            placeholder="سِمت استعلام گیرنده"
                         /> <label
                             for="name"
                             class="pointer-events-none absolute right-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-200 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:right-2 peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
-                        >شماره همراه استعلام شونده </label>
+                        >سِمت استعلام گیرنده </label>
                     </div>
 
-                    <div class="relative mb-3 ml-3 grow"
+                    {{--<div class="relative mb-3 ml-3 grow"
                          data-te-input-wrapper-init
                          data-te-class-notch="group flex flex-row-reverse absolute right-0 top-0 w-full max-w-full h-full text-right pointer-events-none"
                          data-te-class-notch-leading="pointer-events-none border border-solid box-border bg-transparent transition-all duration-200 ease-linear motion-reduce:transition-none left-0 top-0 h-full w-2 border-l-0 rounded-r-[0.25rem] group-data-[te-input-focused]:border-l-0 group-data-[te-input-state-active]:border-l-0 border-neutral-300 dark:border-neutral-600 group-data-[te-input-focused]:shadow-[1px_0_0_#3b71ca,_0_1px_0_0_#3b71ca,_0_-1px_0_0_#3b71ca] group-data-[te-input-focused]:border-primary"
@@ -181,28 +200,39 @@
                             type="text"
                             class="text-right peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
                             id="name"
-                            placeholder="شماره همراه استعلام شونده"
+                            placeholder="تاریخ صدور گواهی"
                         /> <label
                             for="name"
                             class="pointer-events-none absolute right-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-200 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:right-2 peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
-                        >شماره همراه استعلام شونده </label>
-                    </div>
+                        >تاریخ صدور گواهی </label>
+                    </div>--}}
 
-                    <div class="relative mb-3 ml-3 grow"
-                         data-te-input-wrapper-init
-                         data-te-class-notch="group flex flex-row-reverse absolute right-0 top-0 w-full max-w-full h-full text-right pointer-events-none"
-                         data-te-class-notch-leading="pointer-events-none border border-solid box-border bg-transparent transition-all duration-200 ease-linear motion-reduce:transition-none left-0 top-0 h-full w-2 border-l-0 rounded-r-[0.25rem] group-data-[te-input-focused]:border-l-0 group-data-[te-input-state-active]:border-l-0 border-neutral-300 dark:border-neutral-600 group-data-[te-input-focused]:shadow-[1px_0_0_#3b71ca,_0_1px_0_0_#3b71ca,_0_-1px_0_0_#3b71ca] group-data-[te-input-focused]:border-primary"
-                         data-te-class-notch-trailing="pointer-events-none border border-solid box-border bg-transparent transition-all duration-200 ease-linear motion-reduce:transition-none grow h-full border-r-0 rounded-l-[0.25rem] group-data-[te-input-focused]:border-r-0 group-data-[te-input-state-active]:border-r-0 border-neutral-300 dark:border-neutral-600 group-data-[te-input-focused]:shadow-[_0_-1px_0_0_#3b71ca,_0_1px_0_0_#3b71ca,-1px_0_0_#3b71ca] group-data-[te-input-focused]:border-primary"
+                    <div
+                        class="relative mb-3 grow"
+                        data-te-datepicker-init
+                        data-te-input-wrapper-init
+                        data-te-cancel-btn-label="انصراف"
+                        data-te-cancel-btn-text="انصراف"
+                        data-te-clear-btn-label="پاک کردن"
+                        data-te-clear-btn-text="پاک کردن"
+                        data-te-disable-future="true"
+                        data-te-ok-btn-text="تایید"
+                        data-te-format="yyyy/mm/dd"
+                        data-te-title="انتخاب تاریخ"
+{{--                        data-te-months-short="['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']"--}}
+{{--                        data-te-weekdays-short="['شنبه','یکشنبه','دوشنبه','سه شنبه','چهار شنبه','پنج شنبه','جمعه']"--}}
+{{--                        data-te-weekdays-full="['شنبه','یکشنبه','دوشنبه','سه شنبه','چهار شنبه','پنج شنبه','جمعه']"--}}
                     >
                         <input
+                            id="date-picker"
                             type="text"
-                            class="text-right peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
-                            id="name"
-                            placeholder="شماره همراه استعلام شونده"
-                        /> <label
-                            for="name"
-                            class="pointer-events-none absolute right-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-200 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:right-2 peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
-                        >شماره همراه استعلام شونده </label>
+                            class="peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
+                            placeholder="تاریخ صدور گواهی" />
+                        <label
+                            for="date-picker"
+                            class="pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-200 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
+                        >تاریخ صدور گواهی</label
+                        >
                     </div>
 
                 </div>

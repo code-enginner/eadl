@@ -14,6 +14,7 @@ import {
     ChipsInput,
     Select,
     initTE,
+    Datepicker,
 } from "tw-elements";
 
 initTE({
@@ -29,4 +30,5 @@ initTE({
     ChipsInput,
     Select,
     Ripple,
+    Datepicker,
 }, true);
