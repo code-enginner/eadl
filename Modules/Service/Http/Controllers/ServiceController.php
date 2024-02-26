@@ -27,14 +27,22 @@ class ServiceController extends Controller
             'سامانه به طور موقت از دسترس خارج شده است، بعدا تلاش کنید',
             'تاریخ انقضای کد یکبار مصرف تمام شده است، مجددا تلاش کنید',
             'ثبت درخواست استعلام ناموفق بود',
-            'کد پیگیری قابل بازیابی نیست'
+            'کد پیگیری قابل بازیابی نیست',
+            'در دریافت استعلام نهایی خطایی پیش آمده',
+            'سرویس برای مدت کوتاهی از دسترس خارج شده، لطفا بعدا تلاش کنید'
         ]
     ];
 
     private const CACHEPREFIX = 'personInfo:';
 
+    private const PaidStatus = [
+        -1, // An Error Occur and Not Payable
+        0, // Not Any Error and Waiting For Payment to Show Result
+        1 // Payment Was Completed
+    ];
+
     private const PersonStatus = [
-        'realPerson' => 1,
+        'realPerson'  => 1,
         'legalPerson' => 2,
     ];
 
@@ -64,7 +72,6 @@ class ServiceController extends Controller
     public function store(Request $request)
     {
         //todo use form request
-//        dd($request->all());
         if (!Cache::has(self::CACHEPREFIX . $request->hash_id)) {
             return redirect()
                 ->route('panel')
@@ -90,8 +97,9 @@ class ServiceController extends Controller
 
             //Returned response from API hase false
             $httpResultResponse = json_decode($httpResult->body(), TRUE);
+
             if ((bool)$httpResultResponse['status'] === FALSE) {
-                Log::channel('service')->error('Register Inquiry Error', [
+                Log::channel('service')->error('Register Inquiry | Error', [
                     'person_status'        => self::PersonStatus[$request->person_status] . ' | ' . $request->person_status,
                     'receiver_national_id' => $request->receiver_national_id,
                     'organization_id'      => $request->organization_id,
@@ -103,7 +111,7 @@ class ServiceController extends Controller
                     'created_at'           => Carbon::now()
                 ]);
 
-                return redirect()->back()->withErrors($httpResultResponse['message']);
+                return redirect()->back()->withErrors(self::MESSAGE['error'][5]);
             }
 
             //Extract the trackingCode from API response and fill the "$this->trackingCode"
@@ -122,23 +130,81 @@ class ServiceController extends Controller
                 'receiver_job_title'   => $request->receiver_job_title,
                 'office_code'          => $request->office_id,
                 'otp_code'             => $request->otp_code,
-                'tracking_id'          => $this->trackingCode
+                'tracking_id'          => $this->trackingCode,
+                'final_message'        => NULL,
+                'paid'                 => self::PaidStatus[1]
             ]);
 
-//            Cache::put($result->id, );
-
-            Log::channel('service')->info('Register Inquiry Success', [
+            Log::channel('service')->info('Register Inquiry | Success', [
                 'inserted_row'       => $result,
                 'created_at'         => Carbon::now(),
                 'persian_created_at' => Carbon::now(),
             ]);
 
+            try {
+                $finalHttpRequest = Http::withBasicAuth($this->config['Username'], $this->config['Password'])
+                    ->withHeaders([
+                        'X-API-KEY'    => $this->config['X-API-KEY'],
+                        'Content-Type' => 'application/json'
+                    ])
+                    ->asJson()
+                    ->post($this->config['baseURL'] . '/gwaggregateg/statusaggregate', [
+                        'trackingId' => $this->trackingCode
+                    ]);
 
+                $finalResult = $finalHttpRequest->body();
+                $finalResultAsArray = json_decode($finalResult, TRUE);
 
-            return redirect()->route('services.payment.register.create');
+                if ((int)$finalResultAsArray['code'] === 200 || (int)$finalResultAsArray['code'] === 202) {
+                    // todo create "transaction record" and get transaction_id for payment
+                    // todo go to pos payment
+
+                    BackgroundCertificate::where('id', $result->id)
+                        ->where('tracking_id', $this->trackingCode)
+                        ->where('paid', '<>', 1)
+                        ->update([
+                            'final_message' => $finalResultAsArray['data'],
+                            'paid' => 1
+                        ]);
+
+                    Log::channel('service')->info('Final Inquiry Result | Success', [
+                        'tracking_id'     => $this->trackingCode,
+                        'office_code'     => '',
+                        'username'        => '',
+                        'systemMessage_1' => $finalResultAsArray['message'],
+                        'systemMessage_2' => $finalResultAsArray['data'],
+                        'created_at'      => Carbon::now()
+                    ]);
+
+                    return view('dashboard::dashboard.inquiry-result', ['finalMessage' => $finalResultAsArray['data']]);
+
+                } else {
+                    Log::channel('service')->error('Final Inquiry Result | Error', [
+                        'tracking_id'     => $this->trackingCode,
+                        'office_code'     => '',
+                        'username'        => '',
+                        'systemMessage_2' => $finalResultAsArray['message'],
+                        'systemMessage_1' => $finalResultAsArray['data'],
+                        'created_at'      => Carbon::now()
+                    ]);
+
+                    return redirect()->back()->withErrors($finalResultAsArray['data']);
+                }
+
+            } catch (\Exception $exception) {
+                Log::channel('service')->emergency('Final Inquiry Result | Error', [
+                    'tracking_id'   => $this->trackingCode,
+                    'office_code'   => '',
+                    'username'      => '',
+                    'systemMessage' => $exception->getMessage(),
+                    'created_at'    => Carbon::now()
+                ]);
+
+                return redirect()->back()->withErrors(self::MESSAGE['error'][4]);
+            }
 
         } catch (\Exception $exception) {
-            Log::channel('service')->error('Register Inquiry Error', [
+            Log::channel('service')->error('Register Inquiry | Error', [
                 'person_status'        => $request->person_status,
                 'receiver_national_id' => $request->receiver_national_id,
                 'organization_id'      => $request->organization_id,
@@ -183,7 +249,7 @@ class ServiceController extends Controller
 
             $httpResult = json_decode($result, TRUE);
             if ((bool)$httpResult['status'] === FALSE) {
-                Log::channel('service')->emergency('Get OTP Code Error', [
+                Log::channel('service')->emergency('Get OTP Code | Error', [
                     'nationalId'         => $request->national_id,
                     'cellphone'          => $request->cellphone,
                     'office_code'        => '',
@@ -207,7 +273,7 @@ class ServiceController extends Controller
             // Cache Personal info to store them in next step ("registerInquiry" method)
             Cache::put("personInfo:{$hashId}", json_encode($personInfo), 2000);
 
-            Log::channel('service')->info('Get OTP Code Success', [
+            Log::channel('service')->info('Get OTP Code | Success', [
                 'nationalId'   => $request->national_id,
                 'cellphone'    => $request->cellphone,
                 'office_code'  => '',
@@ -219,7 +285,7 @@ class ServiceController extends Controller
             return redirect()->route('services.create')->with('hashId', $hashId);
 
         } catch (\Exception $exception) {
-            Log::channel('service')->emergency('Get OTP Code Error', [
+            Log::channel('service')->emergency('Get OTP Code | Error', [
                 'nationalId'    => $request->national_id,
                 'cellphone'     => $request->cellphone,
                 'office_code'   => '',
@@ -267,15 +333,21 @@ class ServiceController extends Controller
     {
         Http::withBasicAuth($this->config['Username'], $this->config['Password'])
             ->withHeaders([
-                'X-API-KEY' =>  $this->config['X-API-KEY'],
+                'X-API-KEY'    => $this->config['X-API-KEY'],
                 'Content-Type' => 'application/json'
             ])
             ->asJson()
             ->post($this->config['baseURL'] . '/clearence', [
-                'No' => '',
-                'IssueDate' => '',
+                'No'                 => '',
+                'IssueDate'          => '',
                 'CallerNationalCode' => '',
-                'CallerPostTitle' => '',
+                'CallerPostTitle'    => '',
             ]);
+    }
+
+
+    public function backgroundStore(Request $request)
+    {
+        dd($request->all());
     }
 }

@@ -22,6 +22,8 @@ return new class extends Migration
             $table->string('office_code')->nullable()->index();
             $table->string('otp_code');
             $table->string('tracking_id');
+            $table->string('final_message')->nullable()->default(NULL);
+            $table->string('paid')->default(0);
             $table->softDeletes();
             $table->timestamps();
         });

@@ -18,19 +18,21 @@ use Modules\Service\Http\Controllers\ServiceController;
 
 Route::resource('services', ServiceController::class);
 
-//show html form to get inquiry
-Route::prefix('services')->group(function () {
-    Route::post('get/inquiry', [ServiceController::class, 'getOTPCode'])->name('services.get.otp.code');
 
-    //show html form with single input to payment
-    Route::get('payment/register/create', [ServiceController::class, 'paymentRegisterCreate'])->name('services.payment.register.create');
+/*** اعتبار معاملاتی ***/
+Route::prefix('certificate')->group(function () {
+    Route::post('get/inquiry', [ServiceController::class, 'getOTPCode'])->name('certificate.get.otp.code');
 
-    Route::post('payment/register/store', [ServiceController::class, 'paymentRegisterStore'])->name('services.payment.register.store');
-
-
+    Route::post('payment/register/store', [ServiceController::class, 'paymentRegisterStore'])->name('certificate.register.store');
 
     Route::prefix('confirmation')->group(function () {
         Route::post('store', [ServiceController::class, 'confirmationStore'])->name('confirmation.store');
     });
+});
+
+
+/*** تصدیق گواهی سوء پیشینه ***/
+Route::prefix('background')->group(function () {
+    Route::post('store', [ServiceController::class, 'backgroundStore'])->name('background.store');
 });
 

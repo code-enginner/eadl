@@ -13,7 +13,7 @@ class BackgroundCertificate extends Model
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = ['person_national_id', 'person_cellphone', 'person_status', 'receiver_national_id', 'organization_id', 'receiver_job_title', 'office_code', 'otp_code', 'tracking_id'];
+    protected $fillable = ['person_national_id', 'person_cellphone', 'person_status', 'receiver_national_id', 'organization_id', 'receiver_job_title', 'office_code', 'otp_code', 'tracking_id', 'final_message', 'paid'];
     protected $table = 'background_certificate';
 
     protected static function newFactory(): BackgroundCertificateFactory
