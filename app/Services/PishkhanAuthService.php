@@ -3,10 +3,10 @@
 namespace App\Services;
 
 use App\Http\Requests\AuthRequest;
-use App\Libraries\LightOpenID;
+use Illuminate\Http\Request;
+use App\Services\LightOpenID;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Redis;
 use JetBrains\PhpStorm\NoReturn;
 
 class PishkhanAuthService
@@ -25,6 +25,7 @@ class PishkhanAuthService
     private $_password = '';
 
 
+//    public function auth(AuthRequest $request)
     public function auth(AuthRequest $request)
     {
         $this->_init();
@@ -116,7 +117,7 @@ class PishkhanAuthService
         // $request->input('office');
 
         // We use AX protocol to get userkey from authentication (identity) server
-        $this->_openID->required = ['userkey', 'operkey'];//???????????????????????????????????????????
+        $this->_openID->required = ['userkey', 'operkey'];
         // $this->_openID->required = ['operkey'];
         // Sending redirect header to user's browser
 //        dd($this->_openID->authUrl());
@@ -389,6 +390,5 @@ class PishkhanAuthService
         }
         return $output;
     }
-
 
 }

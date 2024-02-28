@@ -12,14 +12,18 @@
 */
 
 use Illuminate\Support\Facades\Route;
-use Modules\Admin\Http\Controllers\AdminController;
 use Modules\Dashboard\Http\Controllers\DashboardController;
 
-Route::prefix('panel')->group(function () {
 
-    Route::get('auth/{office?}/{ver_code?}/{nc?}', [DashboardController::class, 'auth'])->name('auth');
+Route::get('auth/{office?}/{ver_code?}/{nc?}', [DashboardController::class, 'auth']);
+
+//Route::prefix('panel')->group(function () {
+
+//    Route::get('auth/{office?}/{ver_code?}/{nc?}', [DashboardController::class, 'auth'])->name('auth');
+
 
     //show first form to choose fo to inquiry
     Route::get('/', [DashboardController::class, 'index'])->name('panel');
 
-});
+//});
+

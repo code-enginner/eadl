@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Session;
 use Modules\Service\Entities\BackgroundCertificate;
+use Modules\Service\Entities\CertificateOriginality;
 use phpseclib3\Crypt\Common\StreamCipher;
 use function Laravel\Prompts\alert;
 
@@ -29,7 +30,8 @@ class ServiceController extends Controller
             'ثبت درخواست استعلام ناموفق بود',
             'کد پیگیری قابل بازیابی نیست',
             'در دریافت استعلام نهایی خطایی پیش آمده',
-            'سرویس برای مدت کوتاهی از دسترس خارج شده، لطفا بعدا تلاش کنید'
+            'سرویس برای مدت کوتاهی از دسترس خارج شده، لطفا بعدا تلاش کنید',
+            'سررویس استعلام فعلا غیر فعال است، لطفا به'
         ]
     ];
 
@@ -164,7 +166,7 @@ class ServiceController extends Controller
                         ->where('paid', '<>', 1)
                         ->update([
                             'final_message' => $finalResultAsArray['data'],
-                            'paid' => 1
+                            'paid'          => 1
                         ]);
 
                     Log::channel('service')->info('Final Inquiry Result | Success', [
@@ -348,6 +350,58 @@ class ServiceController extends Controller
 
     public function backgroundStore(Request $request)
     {
-        dd($request->all());
+        try {
+            $result = Http::withBasicAuth($this->config['Username'], $this->config['Password'])
+                ->withHeaders([
+                    'X-API-KEY'    => $this->config['X-API-KEY'],
+                    'Content-Type' => 'application/json'
+                ])
+                ->asJson()
+                ->post($this->config['baseURL'] . '/clearence', [
+                    "No"                 => $request->no,
+                    "IssueDate"          => $request->issue_date,
+                    "CallerNationalCode" => $request->caller_national_code,
+                    "CallerPostTitle"    => $request->caller_post_title
+                ]);
+
+            $finalResultAsArray = json_decode($result->body(), TRUE);
+
+            CertificateOriginality::create([
+                'no'                   => $request->no,
+                'issue_date'           => $request->issue_date,
+                'caller_national_code' => $request->caller_national_code,
+                'caller_post_title'    => $request->caller_post_title,
+                'office_code'          => '',
+                'paid'                 => 0,
+                'final_message'        => NULL
+            ]);
+
+
+            //todo handle error result: redirect and prevent to payment
+            //todo go to payment and after success payment return to result page
+
+            Log::channel('service')->error('Register Background | Success', [
+                "No"                 => $request->no,
+                "IssueDate"          => $request->issue_date,
+                "CallerNationalCode" => $request->caller_national_code,
+                "CallerPostTitle"    => $request->caller_post_title,
+                'data'               => $finalResultAsArray,
+                'created_at'         => Carbon::now()
+            ]);
+
+            return view('dashboard::dashboard.inquiry-result', ['finalMessage' => $finalResultAsArray['result']['data']['ResultValue']]);
+
+        } catch (\Exception $exception) {
+            Log::channel('service')->error('Register Background | Error', [
+                "No"                 => $request->no,
+                "IssueDate"          => $request->issue_date,
+                "CallerNationalCode" => $request->caller_national_code,
+                "CallerPostTitle"    => $request->caller_post_title,
+                'systemMessage'      => $exception->getMessage(),
+                'created_at'         => Carbon::now()
+            ]);
+
+            return redirect()->back()->withErrors(self::MESSAGE['error'][6]);
+        }
     }
 }

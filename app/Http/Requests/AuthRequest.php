@@ -24,11 +24,11 @@ class AuthRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'office' => 'required|regex:/^[0-9]+$/',
+           /* 'office' => 'required|regex:/^[0-9]+$/',
             // 'oper' => 'required|regex:/^[0-9a-zA-Z]+$/',
             'oper' => 'required',
             'ver_code' => 'required|regex:/^[0-9a-zA-Z]+$/',
-            'nc' => 'required|regex:/^[0-9a-zA-Z]+$/',
+            'nc' => 'required|regex:/^[0-9a-zA-Z]+$/',*/
         ];
     }
 

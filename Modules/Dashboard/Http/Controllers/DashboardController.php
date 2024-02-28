@@ -83,6 +83,15 @@ class DashboardController extends Controller
 
     public function auth(AuthRequest $request)
     {
+//        $request = [
+//            'office' => '18491849',
+//            'oper' => '18491849u1',
+//            'ver_code' => '06ed4decc69f5962a94b638a46a135f49036299',
+//            'nc' => '07327020ec555d8fd11a8dbc7ab5de8b',
+//            'hash' => 'TCtUbUoyQjNOMkhEUW5SZm1adWFHd3oybmU3Z1Z6a2hQWlB1VEszSW9hZVQrZXdLYlN2dXlZSkRLYmtLcEZNYQ==',
+//        ];
+
         (new PishkhanAuthService())->auth($request);
     }
+
 }

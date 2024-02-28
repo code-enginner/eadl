@@ -14,6 +14,7 @@ class TransactionCreditInquiry extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [];
+    protected $table = '';
 
     protected static function newFactory(): TransactionCreditInquiryFactory
     {
